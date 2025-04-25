@@ -42,10 +42,25 @@ class CarFeatures(BaseModel):
 @app.post("/predict")
 def predict(car: CarFeatures):
     # Convert input to DataFrame for better handling
-    input_dict = car.dict()
-    input_df = pd.DataFrame([input_dict])
+    transformedData = transformData(car)
     
     # Make prediction
-    prediction = model.predict(input_df)
+    prediction = model.predict(transformedData)
     
     return {"prediction": float(prediction[0])}
+
+
+
+def transformData(data):
+    input_dict = data.dict()
+    input_df = pd.DataFrame([input_dict])
+
+    return pd.get_dummies(input_df, columns=[
+    'transmission',
+    'fuel_type',
+    'brand',
+    'model',
+    'origin',
+    'condition',
+    'first_owner'
+], drop_first=True)
