@@ -2,10 +2,10 @@ import pandas as pd
 from sklearn.impute import SimpleImputer
 import numpy as np
 
-DATA_SET_URL = "./data/set.csv"
+DATA_SET_URL = "./data/original_set.csv"
 
 EXPORT=True
-EXPORT_FILE="./data/output.csv"
+EXPORT_FILE="./data/cleaned_set.csv"
 
 #* Load the dataset from CSV file
 df = pd.read_csv(DATA_SET_URL)
@@ -59,6 +59,10 @@ df["number_of_doors"] = impute_stratigy.fit_transform(df["number_of_doors"].valu
 #* Convert the imputed values from float to integer
 df["number_of_doors"] = df["number_of_doors"].astype(int)
 
+#* handle origin
+df = df[df['origin'].isin(['WW au Maroc', 'Dédouanée', 'Importée neuve','Pas encore dédouanée'])]
+
+
 #* Normalize 'first_owner' column: keep only "Oui" and "Non", replace others with "Non"
 df["first_owner"] = df["first_owner"].where(df["first_owner"].isin(["Oui","Non"]), "Non")
 
@@ -88,6 +92,7 @@ outliers = df[(df['price'] < lower_bound) | (df['price'] > upper_bound)]
 
 #* Clip 'price' to within IQR bounds and store in a new column
 df['price_log'] = df['price'].clip(lower_bound, upper_bound)
+
 
 #* Convert mileage ranges like "120 000 - 129 999" to the mean value
 def mileage_to_mean(x):
