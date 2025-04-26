@@ -65,6 +65,7 @@ df = df[df['origin'].isin(['WW au Maroc', 'Dédouanée', 'Importée neuve','Pas 
 
 #* Normalize 'first_owner' column: keep only "Oui" and "Non", replace others with "Non"
 df["first_owner"] = df["first_owner"].where(df["first_owner"].isin(["Oui","Non"]), "Non")
+df["first_owner"] = df["first_owner"].replace("Oui",True).replace("Non",False)
 
 #* Drop rows with missing 'tax_horsepower' values
 df = df.dropna(subset=["tax_horsepower"])
@@ -91,7 +92,7 @@ upper_bound = Q3 + 1.5 * IQR
 outliers = df[(df['price'] < lower_bound) | (df['price'] > upper_bound)]
 
 #* Clip 'price' to within IQR bounds and store in a new column
-df['price_log'] = df['price'].clip(lower_bound, upper_bound)
+df['price'] = df['price'].clip(lower_bound, upper_bound)
 
 
 #* Convert mileage ranges like "120 000 - 129 999" to the mean value
@@ -118,6 +119,8 @@ df['tax_horsepower'] = df['tax_horsepower'].fillna(df['tax_horsepower'].median()
 
 #* Calculate car age from model year
 df['car_age'] = 2025 - df['model_year']
+
+#* Transform first owner to bool
 
 #* export cleaned up dataset
 if EXPORT:
