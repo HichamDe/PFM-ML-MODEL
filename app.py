@@ -5,23 +5,21 @@ import pandas as pd
 
 # Load the specific model
 MODEL_PATH = "models/v1.pkl"  # You can change this as needed
+ENCODER_PATH="models/lib/encoder.pkl"
+SCALER_PATH="models/lib/scaler.pkl"
 model = joblib.load(MODEL_PATH)
+encoder = joblib.load(ENCODER_PATH)
+scaler = joblib.load(SCALER_PATH)
 
 app = FastAPI()
 
 # Input schema matching your features
 class CarFeatures(BaseModel):
     model_year: int
-    transmission: str
-    fuel_type: str
     mileage: float
-    brand: str
-    model: str
     number_of_doors: int
-    origin: str
     first_owner: bool
     tax_horsepower: float
-    condition: str
     abs: bool
     airbags: int
     multimedia: bool
@@ -38,6 +36,13 @@ class CarFeatures(BaseModel):
     sunroof: bool
     remote_central_locking: bool
     power_windows: bool
+    car_age: int
+    transmission: str
+    fuel_type: str
+    brand: str
+    model: str
+    origin: str
+    condition: str
 
 @app.post("/predict")
 def predict(car: CarFeatures):
@@ -52,15 +57,29 @@ def predict(car: CarFeatures):
 
 
 def transformData(data):
-    input_dict = data.dict()
-    input_df = pd.DataFrame([input_dict])
 
-    return pd.get_dummies(input_df, columns=[
-    'transmission',
-    'fuel_type',
-    'brand',
-    'model',
-    'origin',
-    'condition',
-    'first_owner'
-], drop_first=True)
+    data = pd.DataFrame([data.dict()]) 
+
+    categorical_cols = [
+        'transmission',
+        'fuel_type',
+        'brand',
+        'model',
+        'origin',
+        'condition',
+    ]
+
+    data_encoded = encoder.transform(data[categorical_cols])
+
+    # Create DataFrame with proper column names
+    data_encoded = pd.DataFrame(data_encoded, 
+                            columns=encoder.get_feature_names_out(categorical_cols),
+                            index=data.index)  # keep index aligned with original df
+
+    # Optionally, concatenate back with the original dataframe (without the original categorical columns)
+    data = pd.concat([data.drop(columns=categorical_cols), data_encoded], axis=1)
+
+    data[['mileage', 'tax_horsepower', 'car_age', 'number_of_doors']] = scaler.transform(
+        data[['mileage', 'tax_horsepower', 'car_age', 'number_of_doors']]
+    )
+    return data
