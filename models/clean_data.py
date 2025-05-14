@@ -120,7 +120,10 @@ df['tax_horsepower'] = df['tax_horsepower'].fillna(df['tax_horsepower'].median()
 #* Calculate car age from model year
 df['car_age'] = 2025 - df['model_year']
 
-#* Transform first owner to bool
+#* Translate french values to english
+df["transmission"] = df["transmission"].replace("Automatique","automatic").replace("Manuelle","manual")
+df["fuel_type"] = df["fuel_type"].replace("Essence","Gasoline").replace("Electrique","Electric").replace("Hybride","Hybrid")
+df["origin"] = df["origin"].replace("WW au Maroc","Morocco WW").replace("Dédouanée","Customs cleared").replace("Importée neuve","Newly imported").replace("Pas encore dédouanée","Not yet customs cleared")
 
 #* export cleaned up dataset
 if EXPORT:
