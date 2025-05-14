@@ -1,10 +1,11 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import joblib
 import pandas as pd
 
 # Load the specific model
-MODEL_PATH = "models/v1.pkl"  # You can change this as needed
+MODEL_PATH = "models/v2.pkl"  # You can change this as needed
 ENCODER_PATH="models/lib/encoder.pkl"
 SCALER_PATH="models/lib/scaler.pkl"
 model = joblib.load(MODEL_PATH)
@@ -12,6 +13,16 @@ encoder = joblib.load(ENCODER_PATH)
 scaler = joblib.load(SCALER_PATH)
 
 app = FastAPI()
+
+# Allow CORS for localhost:3000
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000","https://ml-beryl.vercel.app"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 # Input schema matching your features
 class CarFeatures(BaseModel):
